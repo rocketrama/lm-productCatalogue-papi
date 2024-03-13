@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="lm-productCatalogue-papi-main" doc:id="1d8bd61e-e11f-43e7-9c74-6c91b1dfa174">
+        <http:listener path="${https.path}" config-ref="lm-productCatalogue-papi-httpListenerConfig">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="lm-productCatalogue-papi-config" />
+        <error-handler ref="lm-errorhandlingError_Handler" />
+    </flow>
+    <flow name="lm-productCatalogue-papi-console" doc:id="ae9334a7-4051-4e85-97a8-c658872134f8">
+        <http:listener path="/console/*" config-ref="lm-productCatalogue-papi-httpListenerConfig">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="lm-productCatalogue-papi-config" />
+        <error-handler ref="lm-errorhandlingError_Handler" />
+    </flow>
+    <flow name="get:\products\(productid):lm-productCatalogue-papi-config" doc:id="57224dd4-d7e4-48b8-b901-d8ee94ca1977">
+        <ee:transform doc:name="Transform Message" doc:id="e094390f-f532-4429-a120-bba072cddfee" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="offset" ><![CDATA[%dw 2.0
+output application/java
+---
+message.attributes.queryParams.offset]]></ee:set-variable>
+				<ee:set-variable variableName="limit" ><![CDATA[%dw 2.0
+output application/java
+---
+message.attributes.queryParams.limit]]></ee:set-variable>
+				<ee:set-variable variableName="counter" ><![CDATA[%dw 2.0
+output application/java
+---
+"0" as Number]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="4ceb556a-6b70-4b3c-aa99-2042b105da77" name="impl-pagination" />
+        <error-handler ref="lm-errorhandlingError_Handler" />
+    </flow>
+    <flow name="post:\product:application\json:lm-productCatalogue-papi-config" doc:id="a3785f92-2d14-43d8-b2be-e467815f1a95">
+        <flow-ref doc:name="Flow Reference" doc:id="ea83ac83-d72c-45f8-85d8-54711879b62f" name="impl-post-productSub_Flow" />
+        <error-handler ref="lm-errorhandlingError_Handler" />
+    </flow>
+</mule>

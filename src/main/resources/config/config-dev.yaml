@@ -1,0 +1,25 @@
+product:
+    host: "lm-aws.us-e2.cloudhub.io"
+    path: "api/product"
+    timeout: "30000"
+    port: "443"
+    method: "POST"
+    responsetimeout: "90000"
+products:
+    protocol: "https"
+    host: "lm-aws.us-e2.cloudhub.io"
+    path: "api/products/0"
+    timeout: "30000"
+    port: "443"
+    method: "GET"
+    responsetimeout: "90000"
+client:
+  client_id: "7a92a323762e4b1884bac9561a490e73"
+  client_secret: "764837F1BB9F45cDa9F10e9477B09FA7"
+
+generic-http-request:
+  timeout:
+    connection-idle: "30000"
+  reconnection:
+    frequency: "3000"
+    attempts: "3"

@@ -1,0 +1,24 @@
+%dw 2.0
+
+type auto_3c9b6435_572a_4576_beaa_816ed20e49ac_Input_Payload = {|
+  protocol: String, 
+  method: String, 
+  endpoint: String, 
+  transportHeaders: {|
+    client_id: String, 
+    client_secret: String
+  |}, 
+  uriParameters: {|  |}, 
+  queryParameters: {|
+    limit: Null, 
+    offset: Null
+  |}, 
+  timeout: {| response: String |}, 
+  logger: {|
+    priority: String, 
+    bsName: String, 
+    logReqPayload: String, 
+    logRespPayload: String
+  |}
+|}
+

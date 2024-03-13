@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<!-- [STUDIO:"impl-get-productsSub_Flow"]<sub-flow name="impl-get-productsSub_Flow" doc:id="5e6e79e9-4cef-465d-880a-908fb20f9eb8" >
+	<logger level="INFO" doc:name="Flow Start Logger" doc:id="8da125a1-6361-483c-a328-058cea4c5fcb" message="The #[flow.name&#93; is started with correlationId is #[correlationId&#93;."/>
+		<ee:transform doc:name="Set variable" doc:id="263f87b6-a47c-4e34-b2dd-e48a8b66e2fa" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="productId" ><![CDATA[%dw 2.0
+output application/java
+&#45;&#45;-
+attributes.queryParams.productId&#93;&#93;></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request/lm-aws-sapi-GET" doc:id="ec089d97-2c84-4033-a59d-07848cfaf34a" path="${products.path}" config-ref="Products_HTTP_Request_configuration-Get" sendCorrelationId="ALWAYS">
+			<http:headers ><![CDATA[#[output application/java
+&#45;&#45;-
+{
+	"client_secret" : "764837F1BB9F45cDa9F10e9477B09FA7",
+	"client_id" : "7a92a323762e4b1884bac9561a490e73"
+}&#93;&#93;&#93;></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+&#45;&#45;-
+{
+	"productId" : vars.productId
+}&#93;&#93;&#93;></http:query-params>
+		
+</http:request>
+		<ee:transform doc:name="Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload map(item)->{
+  productId: item.productId,
+  productName: item.productName,
+  productImage: item.productImage,
+  productMake: item.productMake,
+  productModel: item.productModel,
+  productPrice: item.productPrice,
+  productFeature: item.productFeature
+  } &#93;&#93;></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Flow End Logger" doc:id="0ef4e73a-5bb5-4341-b66c-a38e1ea6490d" message="The #[flow.name&#93; is End with correlationId is #[correlationId&#93; and Payload is : #[payload&#93;."/>
+	
+</sub-flow> [STUDIO] -->
+</mule>

@@ -1,0 +1,15 @@
+app:   
+    name: "lm-addresslookup-sapi"
+    
+https:
+  host: "0.0.0.0"
+  port: "8082"
+  timeout: "30000"
+  path: "/api/*"
+
+keystore:
+  path: "key_store.jks"
+  alias: "mule-server"
+  
+limit:
+  limit: "200"

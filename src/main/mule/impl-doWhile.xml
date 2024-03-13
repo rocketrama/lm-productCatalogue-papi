@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<flow name="impl-pagination" doc:id="ecb1c6aa-69f1-4ec1-a4b7-19f27ad1124c" >
+		<scheduler doc:name="Scheduler" doc:id="37dc9844-2249-4053-a223-1ef1a2ee688e">
+			<scheduling-strategy>
+				<cron expression="* * * * * ?" timeZone="UTC+5.30"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ee:transform doc:name="Set Variables" doc:id="2f414aab-9e43-4de8-af03-f42ae03e1835">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="counter"><![CDATA[%dw 2.0
+output application/java
+---
+"0" as Number]]></ee:set-variable>
+				<ee:set-variable variableName="limit"><![CDATA[%dw 2.0
+output application/java
+---
+"50" as Number]]></ee:set-variable>
+				<ee:set-variable variableName="offset"><![CDATA[%dw 2.0
+output application/java
+---
+"0" as Number]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<file:read doc:name="Read" doc:id="9e51ff87-0d07-40bc-bc17-2840343f398f" path="C:\Users\Ram\product.csv" target="response"/>
+		<foreach doc:name="For Each" doc:id="2494c336-4e81-4973-9824-0b86dbbc8c31" collection="#[vars.response]">
+			<ee:transform doc:name="Transform Message" doc:id="8deb7f4d-103e-471f-9818-8892b2f477f7">
+			<ee:message>
+			</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="response" ><![CDATA[%dw 2.0
+output application/json
+---
+vars.response]]></ee:set-variable>
+				</ee:variables>
+		</ee:transform>
+		</foreach>
+		<flow-ref doc:name="Flow Reference to impl-doWhileSub_Flow" doc:id="1663c557-7557-4ee0-b350-34f9eeb49184" name="impl-doWhileSub_Flow"/>
+	</flow>
+	<sub-flow name="impl-doWhileSub_Flow" doc:id="b6c8cd38-e1fd-49bb-9d80-82659c439dba" >
+		<logger level="INFO" doc:name="Logger Start Flow" doc:id="655a5fd4-b678-4e8e-9164-2f01a91f3561" message="The #[flow.name] is started with the correlationId is #[correlationId]" />
+		<!-- [STUDIO:"Get-aws-sapi"]<flow-ref doc:name="Get-aws-sapi" doc:id="c4f2bd66-8642-4e58-8b82-c4f5c9376747" name="get-aws-sapi" target="response" /> [STUDIO] -->
+		<set-variable value="#[sizeOf(vars.response)]" doc:name="resultsNum" doc:id="e1690a01-7737-4bea-89ed-5fdf9ec2c513" variableName="resultsNum" />
+		<choice doc:name="Choice" doc:id="17ce0934-1c74-4425-b6b0-1545aea3e0cb">
+			<when expression="#[vars.resultsNum != 0]">
+				<ee:transform doc:name="Map The Response" doc:id="4e211ea0-cf23-4148-998c-9cb366d6fb1d">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.response map(item)->{
+  productId: item.productId,
+  productName: item.productName,
+  productImage: item.productImage,
+  productMake: item.productMake,
+  productPrice: item.productPrice,
+  productFeature: item.productFeature
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<amqp:publish doc:name="Publish/dev-test-exchange" doc:id="9bdf442e-41ff-4aed-a8ed-46e441730e9d" exchangeName="dev-test-exchange" config-ref="AMQP_Config"/>
+				<ee:transform doc:name="Update LogMessage" doc:id="dca2fe5b-1647-4637-9455-6d74626e7994">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="logMessage"><![CDATA[%dw 2.0
+output text/plain
+var fromRow = vars.offset as String
+var toRow = (vars.offset as Number + (vars.resultsNum as Number - 1)) as String
+---
+"Processed Rows: " ++ fromRow ++ " - " ++ toRow
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+				<choice doc:name="Counter Value Check" doc:id="1b63a77c-aacb-497d-969c-a87ecf9b3164">
+			<when expression="#[(vars.resultsNum as Number) == (vars.limit as Number)]">
+				<ee:transform doc:name="Update Variables" doc:id="2a30ba06-db6c-442d-86c5-a3d3cbd2cd0c">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="offset"><![CDATA[%dw 2.0
+output application/java
+---
+vars.offset as Number + vars.limit as Number]]></ee:set-variable>
+						<ee:set-variable variableName="counter"><![CDATA[%dw 2.0
+output application/java
+---
+vars.counter as Number + vars.resultsNum as Number]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<flow-ref doc:name="loop" doc:id="19f6bb8c-7748-4d6f-a3e9-93b8ed233f75" name="impl-doWhileSub_Flow" />
+			</when>
+		</choice>
+			
+</when>
+		</choice>
+	</sub-flow>
+
+	<!-- [STUDIO:"get-aws-sapi"]<sub-flow name="get-aws-sapi" doc:id="67903c28-4192-463f-a675-c29374141ae0" >
+		<ee:transform doc:name="Build Request" doc:id="a0c722c1-aed8-4550-b265-1218275ed6cf">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="request"><![CDATA[%dw 2.0
+output application/java
+var protocol = lower(p('products.protocol'))
+var host = p('products.host')
+var port = p('products.port')
+var path = p('products.path')
+&#45;&#45;-
+{
+	protocol: protocol,
+	method: "GET",
+	endpoint: "$(protocol)://$(host):$(port)/$(path)",
+	transportHeaders: {
+		"client_id": p("client.client_id"),
+	    "client_secret": p("client.client_secret")
+	},
+	uriParameters: {
+	},
+	queryParameters: {
+		limit: vars.limit,
+		offset: vars.offset
+	},
+	timeout: {
+		response: p("products.responsetimeout")
+	},
+	logger: {
+		priority: "DEBUG",
+		bsName: "lm-aws-sapi",
+		logReqPayload: "Yes",
+		logRespPayload: "Yes"
+	}
+}&#93;&#93;></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="lm-aws-sapi-sub-flow" doc:id="df626363-3b42-4d40-a3e4-54d8bf687d87" name="lm-aws-sapi-sub-flow"/>
+	</sub-flow> [STUDIO] -->
+</mule>

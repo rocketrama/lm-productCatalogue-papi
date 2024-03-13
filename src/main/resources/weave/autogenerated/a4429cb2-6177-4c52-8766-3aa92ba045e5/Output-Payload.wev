@@ -1,0 +1,9 @@
+%dw 2.0
+
+type auto_a4429cb2_6177_4c52_8766_3aa92ba045e5_Output_Payload = {|
+  code?: String, 
+  details?: Any, 
+  message?: String
+|} {"description": "This is a Success and Failure message datatype.",
+"label": "Message Datatype"}
+

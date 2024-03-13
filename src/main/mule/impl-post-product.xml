@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="impl-post-productSub_Flow" doc:id="a4429cb2-6177-4c52-8766-3aa92ba045e5" >
+	 <logger level="INFO" doc:name="Flow Start Logger" doc:id="0672d7f2-5f21-4416-9943-086cd5038c9d" message="The #[flow.name] is started with correlationId is #[correlationId]."/>
+		<http:request method="POST" doc:name="Request/lm-aws-sapi-POST" doc:id="5267de04-380f-42be-a602-6af40d1085b9" path="${product.path}" config-ref="Product_HTTP_Request_configuration-Post" sendCorrelationId="ALWAYS">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"client_secret" : "764837F1BB9F45cDa9F10e9477B09FA7",
+	"client_id" : "7a92a323762e4b1884bac9561a490e73"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "SUCCESS",
+  message: "Product created successfully",
+  details: {
+    id: "1234567"
+  }
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="Flow End Logger" doc:id="09e9eed5-e4be-4926-bab1-aa470a84476d" message="The #[flow.name] is End with correlationId is #[correlationId] and Payload is : #[payload]."/>
+	
+</sub-flow>
+	
+</mule>

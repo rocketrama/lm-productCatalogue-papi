@@ -1,0 +1,19 @@
+%dw 2.0
+
+type auto_3c9b6435_572a_4576_beaa_816ed20e49ac_Output_Variables_bsLogMessage = {|
+  message: String, 
+  content: {|
+    attributes: org_mule_extension_http_api_HttpResponseAttributes, 
+    payload?: Any, 
+    info*?: "Payload is Empty." | "Payload not logged because it's too big."
+  |}
+|}
+type org_mule_extension_http_api_HttpResponseAttributes = {|
+  statusCode: Number, 
+  reasonPhrase: String, 
+  headers: { _?: String }
+|} {"typeAlias": "HttpResponseAttributes",
+"typeId": "org.mule.extension.http.api.HttpResponseAttributes"}
+
+
+

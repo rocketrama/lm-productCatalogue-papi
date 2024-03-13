@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd  http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+    <http:listener-config name="lm-productCatalogue-papi-httpListenerConfig">
+        <http:listener-connection host="${https.host}" port="${https.port}" protocol="HTTPS" readTimeout="${https.timeout}">
+            <tls:context>
+                <tls:key-store type="jks" path="${keystore.path}" alias="${keystore.alias}" keyPassword="${secure::keystore.keyPassword}" password="${secure::keystore.password}" />
+            </tls:context>
+        </http:listener-connection>
+    </http:listener-config>
+    <apikit:config name="lm-productCatalogue-papi-config" api="resource::f3495ca4-c228-4e85-80ff-760d5bd73de8:lm-productcatalogue-papi:1.0.3:raml:zip:lm-productCatalogue-papi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <global-property doc:name="Global Property" doc:id="f1f48ff8-1457-4743-8dbe-ddeed48820d9" name="mule" value="dev" />
+    <global-property doc:name="Global Property" doc:id="4719dc8c-c3f6-422f-b139-910f2fb3e486" name="mule.key" value="Training@1234567" />
+    <api-gateway:autodiscovery apiId="19282990" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="e0755248-4c20-47c5-9366-d85e899120fc" flowRef="lm-productCatalogue-papi-main" />
+    <secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="427857c5-d64a-48b7-9b7c-8a82104d4ed0" file="config\config-${mule}-secure.yaml" key="${mule.key}" />
+    <configuration-properties doc:name="Configuration properties" doc:id="96c8564e-3be9-4833-8799-164dca0150be" file="config\config-common.yaml" />
+    <configuration-properties doc:name="Configuration properties" doc:id="1d389bf9-94cb-42b4-9caa-5ee0154fe56b" file="config\config-${mule}.yaml" />
+    <configuration-properties doc:name="Configuration properties" doc:id="16840922-cbee-48df-9ac2-e2271e84714e" file="config\config-${mule}-secure.yaml" />
+    <http:request-config name="Product_HTTP_Request_configuration-Post" doc:name="HTTP Request configuration" doc:id="45e766e3-f9e3-428e-b148-389de2037870" responseTimeout="${product.responsetimeout}">
+        <http:request-connection protocol="HTTPS" host="${product.host}" connectionIdleTimeout="${product.timeout}">
+            <tls:context>
+                <tls:trust-store insecure="true" />
+            </tls:context>
+        </http:request-connection>
+    </http:request-config>
+    <http:request-config name="Products_HTTP_Request_configuration-Get" doc:name="HTTP Request configuration" doc:id="02af1e20-0d0b-4d49-b400-5a4baf4d772f" responseTimeout="${products.responsetimeout}">
+        <http:request-connection protocol="HTTPS" host="${products.host}" connectionIdleTimeout="${products.timeout}">
+            <tls:context>
+                <tls:trust-store insecure="true" />
+            </tls:context>
+        </http:request-connection>
+    </http:request-config>
+    <configuration doc:name="Configuration" doc:id="84eb87a4-772b-48f0-b9b3-d4d6d89f4fba" defaultErrorHandler-ref="lm-errorhandlingError_Handler" />
+    <import doc:name="Import" doc:id="e20c4ebb-43b1-474b-b07b-bbf911e4df9f" file="lm-errorhandling.xml" />
+</mule>

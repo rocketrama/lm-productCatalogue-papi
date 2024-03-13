@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd">
+	<amqp:config name="AMQP_Config" doc:name="AMQP Config" doc:id="a5b6370b-3cf9-408d-b91c-46276abe8d63" >
+		<amqp:connection host="woodpecker-01.rmq.cloudamqp.com" port="5672" virtualHost="uohgrges" username="uohgrges" password="4O071trC_1Oms8U1Kx_a_zIfx9QPVwWa" />
+	</amqp:config>
+	<!-- [STUDIO:"impl-get-productFlow"]<flow name="impl-get-productFlow" doc:id="3cd6ce69-6a9f-456e-aca4-ac72b4236ee8" >
+		<scheduler doc:name="Scheduler" doc:id="f2c31fbb-2ae3-4912-b5d8-19520f8abad1" >
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="Logger Start Flow" doc:id="26a3910e-9e80-4657-8aff-f8e5dd26111a" message="The flow is #[flow.name&#93; with correlationId is #[correlationId&#93;"/>
+		<ee:transform doc:name="Transform Message" doc:id="e43460d6-4965-4bee-b63e-d752af0722a6" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="offset" ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+message.attributes&#93;&#93;></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request" doc:id="99e2f33f-23e3-42fc-95fa-5236064f535a" url="https://lm-aws.us-e2.cloudhub.io/api/products/0" sendCorrelationId="ALWAYS">
+			<http:headers><![CDATA[#[output application/java
+&#45;&#45;-
+{
+	"client_secret" : "764837F1BB9F45cDa9F10e9477B09FA7",
+	"client_id" : "7a92a323762e4b1884bac9561a490e73"
+}&#93;&#93;&#93;></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="790840bf-87cb-45d1-8796-ddbc9972764e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="d5d36a9a-e98f-48c6-ac3c-e70dd5b358c9" batchSize="20" collection="#[payload&#93;">
+			<ee:transform doc:name="Transform Message" doc:id="735e24ef-fc71-434d-ac98-743e8d5278bb" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload
+&#93;&#93;></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<amqp:publish doc:name="Publish" doc:id="c9defe46-daa6-4a7c-9aea-372251825156" config-ref="AMQP_Config" exchangeName="dev-test-exchange"/>
+			<logger level="INFO" doc:name="Logger" doc:id="fc435307-3dfc-4611-9620-01a88a8be639" message="#[payload&#93;" />
+		</foreach>
+		<logger level="INFO" doc:name="Logger End Logger" doc:id="4b1a12b4-5ee1-43f1-814d-93174bba46ac" />
+	</flow> [STUDIO] -->
+	<!-- [STUDIO:"impl-getFlow"]<flow name="impl-getFlow" doc:id="be2434be-8834-4506-b649-918c804c50a9" >
+		<logger level="INFO" doc:name="Logger Start Flow" doc:id="376b44ce-e280-4aca-a6b2-a443ccd9d39e" message="The flow is #[flow.name&#93; with correlationId is #[correlationId&#93;"/>
+		<ee:transform doc:name="Set Variables" doc:id="dba994fc-ce7f-458b-8ff5-c9238fc10ba3" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="offset" ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+message.attributes.queryParams.offset
+&#93;&#93;></ee:set-variable>
+				<ee:set-variable variableName="limit" ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+message.attributes.queryParams.limit&#93;&#93;></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<http:request method="GET" doc:name="Request/lm-aws-sapi-GET" doc:id="c06026ed-6e69-45be-869d-64c218ad1452" sendCorrelationId="ALWAYS" config-ref="Products_HTTP_Request_configuration-Get" path="${products.path}">
+			<http:headers><![CDATA[#[output application/java
+&#45;&#45;-
+{
+	"client_secret" : "764837F1BB9F45cDa9F10e9477B09FA7",
+	"client_id" : "7a92a323762e4b1884bac9561a490e73"
+}&#93;&#93;&#93;></http:headers>
+			<http:query-params ><![CDATA[#[output application/java
+&#45;&#45;-
+{
+	"offset" : vars.offset,
+	"limit" : vars.limit
+}&#93;&#93;&#93;></http:query-params>
+		
+</http:request>
+		<foreach doc:name="For Each" doc:id="e704dcaa-a8ea-4064-be04-7aacb73496be" batchSize="20" collection="#[payload&#93;">
+			<ee:transform doc:name="Responses" doc:id="a771b7cd-3c54-4886-bd97-79e5dc7252f4" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+payload
+&#93;&#93;></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<amqp:publish doc:name="Publishdev-test1-queue" doc:id="0bd4c9c1-9a10-48dc-a197-2643e6481be0" config-ref="AMQP_Config" exchangeName="dev-test-exchange"/>
+			<logger level="INFO" doc:name="Response Logger" doc:id="dc79280e-6206-46fb-8998-1733fbfe48d1" message="#[payload&#93;" />
+		</foreach>
+		<logger level="INFO" doc:name="Logger End Logger" doc:id="9797c90a-fd33-4cc5-8b7e-c462f8d70b0f" message="The Flow #[flow.name&#93; is End with correlationId is #[correlationId&#93;."/>
+	</flow> [STUDIO] -->
+</mule>

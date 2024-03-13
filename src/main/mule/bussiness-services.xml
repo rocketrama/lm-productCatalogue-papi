@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<sub-flow name="lm-aws-sapi-sub-flow" doc:id="3c9b6435-572a-4576-beaa-816ed20e49ac">
+		<ee:transform doc:name="Prepare bsLogMessage" doc:id="2c4c834d-19d0-4410-a25f-0ba140cf1c27">
+			<ee:message/>
+			<ee:variables>
+				<ee:set-variable variableName="bsLogMessage" ><![CDATA[%dw 2.0
+output application/json
+var bsName = vars.request.logger.bsName as String
+var logReqPayload = vars.request.logger.logReqPayload as String
+---
+{
+	message: "HTTP Request to $(bsName)",
+	content: {
+		method: vars.request.method,
+		endpoint: vars.request.endpoint,
+		transportHeaders: vars.request.transportHeaders,
+		uriParameters: vars.request.uriParameters,
+		queryParameters: vars.request.queryParameters,
+		(payload: message.payload) if (logReqPayload == "Yes"),
+		(info: vars.request.logger.info) if (vars.request.logger.info != null)
+	}
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<try doc:name="Try" doc:id="ff2020b5-98e2-41bb-9eaa-a119e95199ea">
+			<http:request method="#[vars.request.method]" doc:name="RESTful API" doc:id="f03290ec-970a-4cfd-8127-028f2711dec3" sendCorrelationId="ALWAYS" correlationId="#[correlationId]" url="#[vars.request.endpoint]" responseTimeout="#[vars.request.timeout.response]">
+				<reconnect frequency="${generic-http-request.reconnection.frequency}" count="${generic-http-request.reconnection.attempts}"/>
+				<http:headers><![CDATA[#[vars.request.transportHeaders]]]></http:headers>
+				<http:uri-params><![CDATA[#[vars.request.uriParameters]]]></http:uri-params>
+				<http:query-params><![CDATA[#[vars.request.queryParameters]]]></http:query-params>
+			</http:request>
+			<error-handler ref="lm-errorhandlingError_Handler" />
+		
+</try>
+		<ee:transform doc:name="Update bsLogMessage" doc:id="3425eaf5-0936-440a-80e0-7636f3c6a09a">
+			<ee:message/>
+			<ee:variables>
+				<ee:set-variable variableName="bsLogMessage" ><![CDATA[%dw 2.0
+output application/json
+var contentLength = (message.attributes.headers."content-length") as Number
+var maxCharsLimit = "5000" as Number
+var bsName = vars.request.logger.bsName as String
+var logRespPayload = vars.request.logger.logRespPayload as String
+---
+{
+	message: "HTTP Response from $(bsName)",
+	content: {
+		attributes: message.attributes,
+		(payload: message.payload) if ((contentLength < maxCharsLimit) and (logRespPayload == "Yes")),
+		(info: "Payload is Empty.") if (contentLength == 0),
+		(info: "Payload not logged because it's too big.") if (contentLength > maxCharsLimit)
+	}
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="063592e3-f833-4344-bb34-9728ce20527d" message="#[vars.bsLogMessage.content]"/>
+	</sub-flow>
+	</mule>
